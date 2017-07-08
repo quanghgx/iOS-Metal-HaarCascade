@@ -28,6 +28,8 @@ class ViewController: UIViewController {
         camera = CameraInput(delegate: metalView)
         self.view.addSubview(metalView)
         camera?.start()
+
+        simple_integral.simple_test()
     }
 
     override func didReceiveMemoryWarning() {

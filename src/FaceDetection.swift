@@ -16,14 +16,9 @@ class FaceDetection {
     var sizes = [(width: Int, height: Int)]()
     var scales = [Float]()
 
-    let integral : MPSImageIntegral
-    let sqIntegral : MPSImageIntegralOfSquares
     let haarPipeline : MTLComputePipelineState
-    
     var grayscaleTex : MTLTexture
-    let integralTex : MTLTexture
-    let sqIntegralTex : MTLTexture
-    
+
     var detectedFaceBuffer : MTLBuffer
     var detectedFacePtr : UnsafeMutablePointer<HaarCascade.sRect>
     
@@ -48,11 +43,6 @@ class FaceDetection {
             factor *= scaleFactor
 
         } while (Int(factor * Float(cascade.getWindowSizeWidth())) < width - 10 && Int(factor * Float(cascade.getWindowSizeHeight())) < height - 10)
-        
-        integral = MPSImageIntegral(device: Context.device())
-        integral.label = "imageIntegral"
-        sqIntegral = MPSImageIntegralOfSquares(device: Context.device())
-        sqIntegral.label = "imageIntegralSquares"
 
         let descriptor = MTLTextureDescriptor.texture2DDescriptor(
             pixelFormat: MTLPixelFormat.r32Float,
@@ -62,11 +52,7 @@ class FaceDetection {
         
         grayscaleTex = Context.device().makeTexture(descriptor: descriptor)
         grayscaleTex.label = "grayscale"
-        integralTex = Context.device().makeTexture(descriptor: descriptor)
-        integralTex.label = "imageIntegralTexture"
-        sqIntegralTex = Context.device().makeTexture(descriptor: descriptor)
-        sqIntegralTex.label = "imageIntegralSquaresTexture"
-        
+
         let function = Context.library().makeFunction(name: "haarDetection")!
         function.label = "haarDetection"
         haarPipeline = try! Context.device().makeComputePipelineState(function: function)
@@ -80,7 +66,8 @@ class FaceDetection {
         counterBuffer.label = "counterBuffer"
         let ptr = UnsafeMutablePointer<Int32>(OpaquePointer(counterBuffer.contents()))
         counterPtr = UnsafeMutableBufferPointer<Int32>(start: ptr, count: 1)
-    }    
+    }
+    
     
     func getFaces(commandBuffer: MTLCommandBuffer, input: MTLTexture, output: MTLTexture) {
         
@@ -88,13 +75,13 @@ class FaceDetection {
         counterPtr[0]=0
         
         // convert to gray
-        grayscale.process(device: Context.device(), commandBuffer: commandBuffer, texture: input, output_texture: grayscaleTex)
-
+        integral_grayscale.process(device: Context.device(), commandBuffer: commandBuffer, texture: input, output_texture: grayscaleTex)
+        
         // integral image
-        integral.encode(commandBuffer: commandBuffer, sourceTexture: grayscaleTex, destinationTexture: integralTex)
+        let integralTex = simple_integral.integral(device: Context.device(), grayscaleTex: grayscaleTex)
         
         // sq integral image
-        sqIntegral.encode(commandBuffer: commandBuffer, sourceTexture: grayscaleTex, destinationTexture: sqIntegralTex)
+        let sqIntegralTex = simple_integral.integral(device: Context.device(), grayscaleTex: grayscaleTex)
         
         // haar kernel
         let block = MTLSizeMake(8, 32, 1)
@@ -103,16 +90,16 @@ class FaceDetection {
         let commandEncoder = commandBuffer.makeComputeCommandEncoder()
         commandEncoder.pushDebugGroup("haarKernels")
         commandEncoder.setComputePipelineState(haarPipeline)
-        commandEncoder.setTexture(integralTex, index: 0)
-        commandEncoder.setTexture(sqIntegralTex, index: 1)
-        commandEncoder.setTexture(output, index: 2)
-        commandEncoder.setBuffer(counterBuffer, offset: 0, index: 3)
-        commandEncoder.setBuffer(detectedFaceBuffer, offset: 0, index: 4)
+        commandEncoder.setTexture(integralTex, at: 0)
+        commandEncoder.setTexture(sqIntegralTex, at: 1)
+        commandEncoder.setTexture(output, at: 2)
+        commandEncoder.setBuffer(counterBuffer, offset: 0, at: 3)
+        commandEncoder.setBuffer(detectedFaceBuffer, offset: 0, at: 4)
         
         for (index,buffers) in self.buffers.enumerated() {
-            commandEncoder.setBuffer(buffers.haarCascadeBuffer, offset: 0, index: 0)
-            commandEncoder.setBuffer(buffers.haarStageClassifiersBuffer, offset: 0, index: 1)
-            commandEncoder.setBuffer(buffers.scaledHaarClassifiersBuffer, offset: 0, index: 2)
+            commandEncoder.setBuffer(buffers.haarCascadeBuffer, offset: 0, at: 0)
+            commandEncoder.setBuffer(buffers.haarStageClassifiersBuffer, offset: 0, at: 1)
+            commandEncoder.setBuffer(buffers.scaledHaarClassifiersBuffer, offset: 0, at: 2)
             let threadgroups = MTLSizeMake(max(sizes[index].width/block.width,1)+1, sizes[index].height/block.height+1, 1)
             commandEncoder.dispatchThreadgroups(threadgroups, threadsPerThreadgroup: block)
         }
@@ -127,8 +114,7 @@ class FaceDetection {
     }
     
     private func predicate(eps: Float, r1: HaarCascade.sRect, r2: HaarCascade.sRect) -> Bool {
-        let min_tmp = (min(r1.width, r2.width) + min(r1.height, r2.height))
-        let delta = Float32(eps) * min_tmp  * 0.5
+        let delta = Float32(eps) * (min(r1.width, r2.width) + min(r1.height, r2.height))*0.5
         return abs(r1.x - r2.x) <= delta &&
             abs(r1.y - r2.y) <= delta &&
             abs(r1.x + r1.width - r2.x - r2.width) <= delta &&

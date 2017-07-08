@@ -38,6 +38,6 @@ class ProcessorInput : NSObject {
         NotificationCenter.default.post(name: notificationName, object: nil)
     }
     
-    @objc func processingFinished() {}
+    func processingFinished() {}
     
 }

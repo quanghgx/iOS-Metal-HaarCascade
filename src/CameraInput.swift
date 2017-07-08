@@ -13,8 +13,8 @@ import ImageIO
 
 class CameraInput : ProcessorInput, AVCaptureVideoDataOutputSampleBufferDelegate {
     
-    private let targetPosition : AVCaptureDevice.Position = .back
-    private let targetFps : Float64 = 30
+    private let targetPosition : AVCaptureDevicePosition = .back
+    private let targetFps : Float64 = 2
     static let targetDimensions = CMVideoDimensions(width: 1280, height: 720)
     
     private let targetType = NSNumber(value: kCVPixelFormatType_32BGRA)
@@ -88,7 +88,7 @@ class CameraInput : ProcessorInput, AVCaptureVideoDataOutputSampleBufferDelegate
         
         session = AVCaptureSession()
         session.beginConfiguration()
-        session.sessionPreset = AVCaptureSession.Preset.high
+        session.sessionPreset = AVCaptureSessionPresetHigh
         
         guard let device = AVCaptureDevice.defaultDevice(withDeviceType: .builtInWideAngleCamera, mediaType: AVMediaTypeVideo, position: targetPosition) else {
             fatalError("Could not retreive valid device")
@@ -103,11 +103,11 @@ class CameraInput : ProcessorInput, AVCaptureVideoDataOutputSampleBufferDelegate
     private func configureCamera(device: AVCaptureDevice) {
         
         var chosenFormat : AVCaptureDeviceFormat? = nil
-        var chosenRange : AVCaptureDeviceFormat.FrameRateRange? = nil
+        var chosenRange : AVFrameRateRange? = nil
         
         for _format in device.formats {
             
-            guard let format = _format as? AVCaptureDevice.Format else { continue }
+            guard let format = _format as? AVCaptureDeviceFormat else { continue }
             guard let description = format.formatDescription else { continue }
             let dimensions = CMVideoFormatDescriptionGetDimensions(description)
             guard dimensions.width == CameraInput.targetDimensions.width && dimensions.height == CameraInput.targetDimensions.height else { continue }

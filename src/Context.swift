@@ -20,7 +20,7 @@ class Context {
     
     init() {
         _device = MTLCreateSystemDefaultDevice()!;
-        _library = _device.makeDefaultLibrary()!;
+        _library = _device.newDefaultLibrary()!;
         _commandQueue = _device.makeCommandQueue()
         _context = CIContext(mtlDevice: _device);
     }

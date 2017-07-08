@@ -10,7 +10,7 @@ import Foundation
 import MetalKit
 import CoreGraphics
 
-class grayscale{
+class integral_grayscale{
     class func process(device: MTLDevice, commandBuffer: MTLCommandBuffer, texture: MTLTexture, output_texture: MTLTexture){
         // 2. input texture
         print("[init] loaded texture: \(texture.width) : \(texture.height) ")
@@ -24,8 +24,8 @@ class grayscale{
 
         let commandEncoder = commandBuffer.makeComputeCommandEncoder()
         commandEncoder.setComputePipelineState(pipelineState!)
-        commandEncoder.setTexture(texture, index: 0)
-        commandEncoder.setTexture(output_texture, index: 1)
+        commandEncoder.setTexture(texture, at: 0)
+        commandEncoder.setTexture(output_texture, at: 1)
         commandEncoder.dispatchThreadgroups(thread_group, threadsPerThreadgroup: thread_group_counts)
         commandEncoder.endEncoding()
     }
@@ -33,8 +33,8 @@ class grayscale{
     class func build_pipleline_state(device: MTLDevice)-> MTLComputePipelineState!{
         print("[init] build_pipleline_state")
 
-        let library = device.makeDefaultLibrary()
-        let kernelFunction = library?.makeFunction(name: "compute_function")
+        let library = Context.library()
+        let kernelFunction = library.makeFunction(name: "integral_gray")
 
         do{
             let pipelineState = try device.makeComputePipelineState(function: kernelFunction!)
@@ -47,4 +47,5 @@ class grayscale{
         }
     }
 }
+
 
