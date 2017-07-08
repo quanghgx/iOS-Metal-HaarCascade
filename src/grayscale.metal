@@ -13,10 +13,9 @@ using namespace metal;
 constant float3 kRec709Luma = float3(0.2126, 0.7152, 0.0722);
 
 // Grayscale compute shader
-kernel void integral_gray(texture2d<float, access::read>  inTexture   [[ texture(0) ]],
+kernel void grayscale_function(texture2d<float, access::read>  inTexture   [[ texture(0) ]],
                              texture2d<float, access::write> outTexture  [[ texture(1) ]],
                              uint2                          gid         [[ thread_position_in_grid ]]){
-
     if((gid.x < outTexture.get_width()) && (gid.y < outTexture.get_height())){
         float4 inColor  = inTexture.read(gid);
         float  gray     = dot(inColor.rgb, kRec709Luma);
@@ -24,5 +23,4 @@ kernel void integral_gray(texture2d<float, access::read>  inTexture   [[ texture
         outTexture.write(outColor, gid);
     }
 }
-
 

@@ -7,9 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		4355658F1F10C394003D617F /* integral_gray.swift in Sources */ = {isa = PBXBuildFile; fileRef = 43B502B81F10C061007C3A92 /* integral_gray.swift */; };
-		435565901F10C39C003D617F /* integral_gray.metal in Sources */ = {isa = PBXBuildFile; fileRef = 43B502B71F10C061007C3A92 /* integral_gray.metal */; };
-		435565911F10C3A0003D617F /* simple_integral.swift in Sources */ = {isa = PBXBuildFile; fileRef = 43B502B91F10C069007C3A92 /* simple_integral.swift */; };
+		43E871661F11229F007F31E2 /* grayscale.metal in Sources */ = {isa = PBXBuildFile; fileRef = 43E871651F11229F007F31E2 /* grayscale.metal */; };
+		43E871681F1122C1007F31E2 /* grayscale.swift in Sources */ = {isa = PBXBuildFile; fileRef = 43E871671F1122C1007F31E2 /* grayscale.swift */; };
 		9DEF7AD11DDB2DD500932082 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9DEF7AD01DDB2DD500932082 /* AppDelegate.swift */; };
 		9DEF7AD31DDB2DD500932082 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9DEF7AD21DDB2DD500932082 /* ViewController.swift */; };
 		9DEF7AD61DDB2DD500932082 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 9DEF7AD41DDB2DD500932082 /* Main.storyboard */; };
@@ -29,9 +28,8 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		43B502B71F10C061007C3A92 /* integral_gray.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = integral_gray.metal; sourceTree = "<group>"; };
-		43B502B81F10C061007C3A92 /* integral_gray.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = integral_gray.swift; sourceTree = "<group>"; };
-		43B502B91F10C069007C3A92 /* simple_integral.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = simple_integral.swift; sourceTree = "<group>"; };
+		43E871651F11229F007F31E2 /* grayscale.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = grayscale.metal; sourceTree = "<group>"; };
+		43E871671F1122C1007F31E2 /* grayscale.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = grayscale.swift; sourceTree = "<group>"; };
 		9DEF7ACD1DDB2DD500932082 /* iOS-Metal-HaarCascade.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "iOS-Metal-HaarCascade.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		9DEF7AD01DDB2DD500932082 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		9DEF7AD21DDB2DD500932082 /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
@@ -100,10 +98,9 @@
 				9DEF7AD41DDB2DD500932082 /* Main.storyboard */,
 				9DEF7AD71DDB2DD500932082 /* Assets.xcassets */,
 				9DEF7AD91DDB2DD500932082 /* LaunchScreen.storyboard */,
-				43B502B91F10C069007C3A92 /* simple_integral.swift */,
-				43B502B71F10C061007C3A92 /* integral_gray.metal */,
-				43B502B81F10C061007C3A92 /* integral_gray.swift */,
 				9DEF7ADC1DDB2DD500932082 /* Info.plist */,
+				43E871651F11229F007F31E2 /* grayscale.metal */,
+				43E871671F1122C1007F31E2 /* grayscale.swift */,
 			);
 			name = "iOS-Metal-HaarCascade";
 			path = src;
@@ -229,18 +226,17 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				435565911F10C3A0003D617F /* simple_integral.swift in Sources */,
-				435565901F10C39C003D617F /* integral_gray.metal in Sources */,
-				4355658F1F10C394003D617F /* integral_gray.swift in Sources */,
 				9DEF7B021DDC67EE00932082 /* ProcessorManager.swift in Sources */,
 				9DEF7B071DDC6C2300932082 /* FaceDetectionKernels.metal in Sources */,
 				9DEF7AE31DDB2E0900932082 /* ViewFunctions.metal in Sources */,
+				43E871681F1122C1007F31E2 /* grayscale.swift in Sources */,
 				9DEF7AE51DDB2E1000932082 /* Context.swift in Sources */,
 				9DEF7B0B1DDC6C2900932082 /* HaarCascade.swift in Sources */,
 				9DEF7AF11DDB2EAD00932082 /* Processor.swift in Sources */,
 				9DEF7AEE1DDB2E7F00932082 /* ProcessorInput.swift in Sources */,
 				9DEF7B091DDC6C2700932082 /* FaceDetection.swift in Sources */,
 				9DEF7AE71DDB2E1A00932082 /* View.swift in Sources */,
+				43E871661F11229F007F31E2 /* grayscale.metal in Sources */,
 				9DEF7AD31DDB2DD500932082 /* ViewController.swift in Sources */,
 				9DEF7AD11DDB2DD500932082 /* AppDelegate.swift in Sources */,
 				9DEF7AEC1DDB2E5E00932082 /* CameraInput.swift in Sources */,
@@ -382,10 +378,9 @@
 				INFOPLIST_FILE = "$(SRCROOT)/src/Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 10.3;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
-				PRODUCT_BUNDLE_IDENTIFIER = test5.com.helf.testbed;
+				PRODUCT_BUNDLE_IDENTIFIER = test6.com.helf.testbed;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 3.0;
-				TARGETED_DEVICE_FAMILY = 2;
 			};
 			name = Debug;
 		};
@@ -397,10 +392,9 @@
 				INFOPLIST_FILE = "$(SRCROOT)/src/Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 10.3;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
-				PRODUCT_BUNDLE_IDENTIFIER = test5.com.helf.testbed;
+				PRODUCT_BUNDLE_IDENTIFIER = test6.com.helf.testbed;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 3.0;
-				TARGETED_DEVICE_FAMILY = 2;
 			};
 			name = Release;
 		};

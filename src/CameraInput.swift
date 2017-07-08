@@ -13,8 +13,8 @@ import ImageIO
 
 class CameraInput : ProcessorInput, AVCaptureVideoDataOutputSampleBufferDelegate {
     
-    private let targetPosition : AVCaptureDevicePosition = .back
-    private let targetFps : Float64 = 2
+    private let targetPosition : AVCaptureDevicePosition = .front
+    private let targetFps : Float64 = 3
     static let targetDimensions = CMVideoDimensions(width: 1280, height: 720)
     
     private let targetType = NSNumber(value: kCVPixelFormatType_32BGRA)

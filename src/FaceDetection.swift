@@ -6,6 +6,7 @@
 
 import Foundation
 import MetalKit
+import MetalPerformanceShaders
 
 class FaceDetection {
     
@@ -16,14 +17,26 @@ class FaceDetection {
     var sizes = [(width: Int, height: Int)]()
     var scales = [Float]()
 
+    let integral : MPSImageIntegral
+    let sqIntegral : MPSImageIntegralOfSquares
     let haarPipeline : MTLComputePipelineState
+    
+    var histogramInfo : MPSImageHistogramInfo
+    let histogram : MPSImageHistogram
+    let eqHistograms : MPSImageHistogramEqualization
+    let histogramInfoBuffer : MTLBuffer
+    
     var grayscaleTex : MTLTexture
-
+    let integralTex : MTLTexture
+    let sqIntegralTex : MTLTexture
+    
     var detectedFaceBuffer : MTLBuffer
     var detectedFacePtr : UnsafeMutablePointer<HaarCascade.sRect>
     
     var counterBuffer : MTLBuffer
     var counterPtr : UnsafeMutableBufferPointer<Int32>
+    
+    let computeHistogram = false
     
     init(path: URL, width: Int, height: Int) {
         
@@ -43,7 +56,25 @@ class FaceDetection {
             factor *= scaleFactor
 
         } while (Int(factor * Float(cascade.getWindowSizeWidth())) < width - 10 && Int(factor * Float(cascade.getWindowSizeHeight())) < height - 10)
-
+        
+        integral = MPSImageIntegral(device: Context.device())
+        integral.label = "imageIntegral"
+        sqIntegral = MPSImageIntegralOfSquares(device: Context.device())
+        sqIntegral.label = "imageIntegralSquares"
+        
+        histogramInfo = MPSImageHistogramInfo(
+            numberOfHistogramEntries: 256,
+            histogramForAlpha: false,
+            minPixelValue: vector_float4(0,0,0,0),
+            maxPixelValue: vector_float4(1,1,1,1))
+        
+        histogram = MPSImageHistogram(device: Context.device(), histogramInfo: &histogramInfo)
+        histogram.label = "imageHistogram"
+        histogramInfoBuffer = Context.device().makeBuffer(bytes: &histogramInfo, length: MemoryLayout.size(ofValue: histogramInfo), options: MTLResourceOptions.optionCPUCacheModeWriteCombined)
+        histogramInfoBuffer.label = "histogramInfoBuffer"
+        eqHistograms = MPSImageHistogramEqualization(device: Context.device(), histogramInfo: &histogramInfo)
+        eqHistograms.label = "imageHistogramEqualization"
+        
         let descriptor = MTLTextureDescriptor.texture2DDescriptor(
             pixelFormat: MTLPixelFormat.r32Float,
             width: width,
@@ -52,7 +83,11 @@ class FaceDetection {
         
         grayscaleTex = Context.device().makeTexture(descriptor: descriptor)
         grayscaleTex.label = "grayscale"
-
+        integralTex = Context.device().makeTexture(descriptor: descriptor)
+        integralTex.label = "imageIntegralTexture"
+        sqIntegralTex = Context.device().makeTexture(descriptor: descriptor)
+        sqIntegralTex.label = "imageIntegralSquaresTexture"
+        
         let function = Context.library().makeFunction(name: "haarDetection")!
         function.label = "haarDetection"
         haarPipeline = try! Context.device().makeComputePipelineState(function: function)
@@ -75,13 +110,22 @@ class FaceDetection {
         counterPtr[0]=0
         
         // convert to gray
-        integral_grayscale.process(device: Context.device(), commandBuffer: commandBuffer, texture: input, output_texture: grayscaleTex)
+        grayscale.process(commandBuffer: commandBuffer, sourceTexture: input, destinationTexture: grayscaleTex)
+
+        // histogram equalization, costs performance ...
+        if computeHistogram {
+            // histogram
+            histogram.encode(to: commandBuffer, sourceTexture: grayscaleTex, histogram: histogramInfoBuffer, histogramOffset: 0)
+
+            // equalize
+            eqHistograms.encode(commandBuffer: commandBuffer, inPlaceTexture: &grayscaleTex, fallbackCopyAllocator: nil)
+        }
         
         // integral image
-        let integralTex = simple_integral.integral(device: Context.device(), grayscaleTex: grayscaleTex)
+        integral.encode(commandBuffer: commandBuffer, sourceTexture: grayscaleTex, destinationTexture: integralTex)
         
         // sq integral image
-        let sqIntegralTex = simple_integral.integral(device: Context.device(), grayscaleTex: grayscaleTex)
+        sqIntegral.encode(commandBuffer: commandBuffer, sourceTexture: grayscaleTex, destinationTexture: sqIntegralTex)
         
         // haar kernel
         let block = MTLSizeMake(8, 32, 1)
@@ -274,7 +318,7 @@ class FaceDetection {
                 }
                 
                 j += 1
-        
+
             }
             
             if j == nClasses {
