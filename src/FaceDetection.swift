@@ -6,7 +6,6 @@
 
 import Foundation
 import MetalKit
-import MetalPerformanceShaders
 
 class FaceDetection {
     
@@ -16,16 +15,10 @@ class FaceDetection {
     var buffers = Array<HaarCascade.Buffers>()
     var sizes = [(width: Int, height: Int)]()
     var scales = [Float]()
-    
-    let conversion : MPSImageConversion
+
     let integral : MPSImageIntegral
     let sqIntegral : MPSImageIntegralOfSquares
     let haarPipeline : MTLComputePipelineState
-    
-    var histogramInfo : MPSImageHistogramInfo
-    let histogram : MPSImageHistogram
-    let eqHistograms : MPSImageHistogramEqualization
-    let histogramInfoBuffer : MTLBuffer
     
     var grayscaleTex : MTLTexture
     let integralTex : MTLTexture
@@ -36,8 +29,6 @@ class FaceDetection {
     
     var counterBuffer : MTLBuffer
     var counterPtr : UnsafeMutableBufferPointer<Int32>
-    
-    let computeHistogram = false
     
     init(path: URL, width: Int, height: Int) {
         
@@ -58,27 +49,11 @@ class FaceDetection {
 
         } while (Int(factor * Float(cascade.getWindowSizeWidth())) < width - 10 && Int(factor * Float(cascade.getWindowSizeHeight())) < height - 10)
         
-        let conversionInfo = CGColorConversionInfo(src: CGColorSpaceCreateDeviceRGB(), dst: CGColorSpaceCreateDeviceGray())
-        conversion = MPSImageConversion(device: Context.device(), srcAlpha: .alphaIsOne, destAlpha: .alphaIsOne, backgroundColor: nil, conversionInfo: conversionInfo)
-        conversion.label = "imageConversion"
         integral = MPSImageIntegral(device: Context.device())
         integral.label = "imageIntegral"
         sqIntegral = MPSImageIntegralOfSquares(device: Context.device())
         sqIntegral.label = "imageIntegralSquares"
-        
-        histogramInfo = MPSImageHistogramInfo(
-            numberOfHistogramEntries: 256,
-            histogramForAlpha: false,
-            minPixelValue: vector_float4(0,0,0,0),
-            maxPixelValue: vector_float4(1,1,1,1))
-        
-        histogram = MPSImageHistogram(device: Context.device(), histogramInfo: &histogramInfo)
-        histogram.label = "imageHistogram"
-        histogramInfoBuffer = Context.device().makeBuffer(bytes: &histogramInfo, length: MemoryLayout.size(ofValue: histogramInfo), options: MTLResourceOptions.optionCPUCacheModeWriteCombined)
-        histogramInfoBuffer.label = "histogramInfoBuffer"
-        eqHistograms = MPSImageHistogramEqualization(device: Context.device(), histogramInfo: &histogramInfo)
-        eqHistograms.label = "imageHistogramEqualization"
-        
+
         let descriptor = MTLTextureDescriptor.texture2DDescriptor(
             pixelFormat: MTLPixelFormat.r32Float,
             width: width,
@@ -105,8 +80,7 @@ class FaceDetection {
         counterBuffer.label = "counterBuffer"
         let ptr = UnsafeMutablePointer<Int32>(OpaquePointer(counterBuffer.contents()))
         counterPtr = UnsafeMutableBufferPointer<Int32>(start: ptr, count: 1)
-    }
-    
+    }    
     
     func getFaces(commandBuffer: MTLCommandBuffer, input: MTLTexture, output: MTLTexture) {
         
@@ -114,17 +88,8 @@ class FaceDetection {
         counterPtr[0]=0
         
         // convert to gray
-        conversion.encode(commandBuffer: commandBuffer, sourceTexture: input, destinationTexture: grayscaleTex)
-        
-        // histogram equalization, costs performance ...
-        if computeHistogram {
-            // histogram
-            histogram.encode(to: commandBuffer, sourceTexture: grayscaleTex, histogram: histogramInfoBuffer, histogramOffset: 0)
-        
-            // equalize
-            eqHistograms.encode(commandBuffer: commandBuffer, inPlaceTexture: &grayscaleTex, fallbackCopyAllocator: nil)
-        }
-        
+        grayscale.process(device: Context.device(), commandBuffer: commandBuffer, texture: input, output_texture: grayscaleTex)
+
         // integral image
         integral.encode(commandBuffer: commandBuffer, sourceTexture: grayscaleTex, destinationTexture: integralTex)
         
@@ -138,16 +103,16 @@ class FaceDetection {
         let commandEncoder = commandBuffer.makeComputeCommandEncoder()
         commandEncoder.pushDebugGroup("haarKernels")
         commandEncoder.setComputePipelineState(haarPipeline)
-        commandEncoder.setTexture(integralTex, at: 0)
-        commandEncoder.setTexture(sqIntegralTex, at: 1)
-        commandEncoder.setTexture(output, at: 2)
-        commandEncoder.setBuffer(counterBuffer, offset: 0, at: 3)
-        commandEncoder.setBuffer(detectedFaceBuffer, offset: 0, at: 4)
+        commandEncoder.setTexture(integralTex, index: 0)
+        commandEncoder.setTexture(sqIntegralTex, index: 1)
+        commandEncoder.setTexture(output, index: 2)
+        commandEncoder.setBuffer(counterBuffer, offset: 0, index: 3)
+        commandEncoder.setBuffer(detectedFaceBuffer, offset: 0, index: 4)
         
         for (index,buffers) in self.buffers.enumerated() {
-            commandEncoder.setBuffer(buffers.haarCascadeBuffer, offset: 0, at: 0)
-            commandEncoder.setBuffer(buffers.haarStageClassifiersBuffer, offset: 0, at: 1)
-            commandEncoder.setBuffer(buffers.scaledHaarClassifiersBuffer, offset: 0, at: 2)
+            commandEncoder.setBuffer(buffers.haarCascadeBuffer, offset: 0, index: 0)
+            commandEncoder.setBuffer(buffers.haarStageClassifiersBuffer, offset: 0, index: 1)
+            commandEncoder.setBuffer(buffers.scaledHaarClassifiersBuffer, offset: 0, index: 2)
             let threadgroups = MTLSizeMake(max(sizes[index].width/block.width,1)+1, sizes[index].height/block.height+1, 1)
             commandEncoder.dispatchThreadgroups(threadgroups, threadsPerThreadgroup: block)
         }
@@ -162,7 +127,8 @@ class FaceDetection {
     }
     
     private func predicate(eps: Float, r1: HaarCascade.sRect, r2: HaarCascade.sRect) -> Bool {
-        let delta = Float32(eps) * (min(r1.width, r2.width) + min(r1.height, r2.height))*0.5
+        let min_tmp = (min(r1.width, r2.width) + min(r1.height, r2.height))
+        let delta = Float32(eps) * min_tmp  * 0.5
         return abs(r1.x - r2.x) <= delta &&
             abs(r1.y - r2.y) <= delta &&
             abs(r1.x + r1.width - r2.x - r2.width) <= delta &&

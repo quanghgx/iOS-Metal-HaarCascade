@@ -90,9 +90,9 @@ class View : MTKView, ProcessorInputDelegate {
         // render encoding
         encoder.pushDebugGroup("render")
         encoder.setRenderPipelineState(pipeline)
-        encoder.setVertexBuffer(vertexBuffer, offset: 0, at: 0)
-        encoder.setFragmentTexture(input, at: 0)
-        encoder.setFragmentSamplerState(samplerState, at: 0)
+        encoder.setVertexBuffer(vertexBuffer, offset: 0, index: 0)
+        encoder.setFragmentTexture(input, index: 0)
+        encoder.setFragmentSamplerState(samplerState, index: 0)
         encoder.setCullMode(MTLCullMode.none)
         
         // Draw primitives
@@ -123,7 +123,7 @@ class View : MTKView, ProcessorInputDelegate {
             sampler.rAddressMode          = MTLSamplerAddressMode.clampToEdge
             sampler.normalizedCoordinates = true
             sampler.lodMinClamp           = 0
-            sampler.lodMaxClamp           = FLT_MAX
+            sampler.lodMaxClamp           = .greatestFiniteMagnitude
         }
         else
         {

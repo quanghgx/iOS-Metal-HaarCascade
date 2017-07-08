@@ -26,6 +26,8 @@ class Processor {
     }
     
     func process(drawable: CAMetalDrawable, descriptor: MTLRenderPassDescriptor, texture: MTLTexture, time: Double, semaphore: DispatchSemaphore) {
+
+        print("[processor] process")
         
         // create the commandbuffer
         let commandBuffer = Context.commandQueue().makeCommandBuffer()
@@ -59,8 +61,8 @@ class Processor {
             // encode
             let encoder = commandBuffer2.makeComputeCommandEncoder()
             encoder.setComputePipelineState(haarDrawPipeline)
-            encoder.setTexture(texture, at: 0)
-            encoder.setBuffer(faceBuffer, offset: 0, at: 0)
+            encoder.setTexture(texture, index: 0)
+            encoder.setBuffer(faceBuffer, offset: 0, index: 0)
             encoder.dispatchThreadgroups(MTLSizeMake(faces.count, 1, 1), threadsPerThreadgroup: MTLSizeMake(1, 1, 1))
             encoder.endEncoding()
         }
