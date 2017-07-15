@@ -85,7 +85,7 @@ class FaceDetection {
         counterPtr[0]=0
         
         // convert to gray
-        grayscale.encode(commandBuffer: commandBuffer, sourceTexture: input, destinationTexture: grayscaleTex)
+        simple_filter.encode_grayscale(commandBuffer: commandBuffer, sourceTexture: input, destinationTexture: grayscaleTex)
 
         // integral image
         integral.encode(commandBuffer, sourceTexture: grayscaleTex, destinationTexture: integralTex)

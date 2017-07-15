@@ -83,7 +83,7 @@ class IntegralImage {
             mipmapped: false)
         square_descriptor.usage = [.shaderRead,.shaderWrite]
         let squareTex = device.makeTexture(descriptor: square_descriptor)
-        simple_square.process(device: device, library: library, commandBuffer: commandBuffer, sourceTexture: sourceTexture, destinationTexture: squareTex)
+        simple_filter.encode_square(commandBuffer: commandBuffer, sourceTexture: sourceTexture, destinationTexture: squareTex)
         encode(commandBuffer, sourceTexture: squareTex, destinationTexture: destinationTexture)
     }
 
@@ -116,13 +116,12 @@ class IntegralImage {
         self.encodeScan(commandBuffer: commandBuffer, input: sourceTexture, aux: aux, output: intermediary)
         self.encodeScan(commandBuffer: commandBuffer, input: aux, aux: nil, output: auxScanned)
         self.encodeFixup(commandBuffer: commandBuffer, input: intermediary, aux: auxScanned, output: out)
-
-        simple_transpose.process(device: device, library: library, commandBuffer: commandBuffer, sourceTexture: out, destinationTexture: input_t)
+        simple_filter.encode_transpose(commandBuffer: commandBuffer, sourceTexture: out, destinationTexture: input_t)
 
         self.encodeScan(commandBuffer: commandBuffer, input: input_t, aux: aux_t, output: intermediary_t)
         self.encodeScan(commandBuffer: commandBuffer, input: aux_t, aux: nil, output: auxScanned_t)
         self.encodeFixup(commandBuffer: commandBuffer, input: intermediary_t, aux: auxScanned_t, output: out_t)
-        simple_transpose.process(device: device, library: library, commandBuffer: commandBuffer, sourceTexture: out_t, destinationTexture: destinationTexture)
+        simple_filter.encode_transpose(commandBuffer: commandBuffer, sourceTexture: out_t, destinationTexture: destinationTexture)
     }
 
     /* Sets the pipelines for encoding*/
