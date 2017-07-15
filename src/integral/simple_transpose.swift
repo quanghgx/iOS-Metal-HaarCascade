@@ -1,21 +1,17 @@
 //
-//  grayscale.swift
-//  metal_in_macos_filter_with_swift
-//
-//  Created by Hoàng Xuân Quang on 7/5/17.
+//  Created by Hoàng Xuân Quang on 7/9/17.
 //  Copyright © 2017 Hoang Xuan Quang. All rights reserved.
 //
 
 import Foundation
 import MetalKit
-import CoreGraphics
 
-class grayscale{
-    class func process(commandBuffer: MTLCommandBuffer, sourceTexture: MTLTexture, destinationTexture: MTLTexture){
-        // 2. input texture
-        print("[init] grayscale texture: \(sourceTexture.width) : \(sourceTexture.height) \(sourceTexture.description)")
+class simple_transpose{
 
-        let pipelineState = build_pipleline_state(device: Context.device())
+    class func process(device: MTLDevice,library: MTLLibrary, commandBuffer: MTLCommandBuffer, sourceTexture: MTLTexture, destinationTexture: MTLTexture){
+        let pipelineState = build_pipleline_state(device: device, library: library)
+
+        assert(sourceTexture.width == destinationTexture.height && sourceTexture.height == destinationTexture.width)
 
         // 4. thread group
         let w = pipelineState!.threadExecutionWidth
@@ -34,15 +30,10 @@ class grayscale{
         commandEncoder.endEncoding()
     }
 
-    class func build_pipleline_state(device: MTLDevice)-> MTLComputePipelineState!{
-        print("[init] build_pipleline_state")
-
-        let kernelFunction = Context.library().makeFunction(name: "grayscale_function")
-
+    class func build_pipleline_state(device: MTLDevice, library: MTLLibrary)-> MTLComputePipelineState!{
+        let kernelFunction = library.makeFunction(name: "transpose_function")
         do{
             let pipelineState = try device.makeComputePipelineState(function: kernelFunction!)
-            print("[max total thread per group] \(pipelineState.maxTotalThreadsPerThreadgroup)")
-            print("[thread execution width] \(pipelineState.threadExecutionWidth)")
             return pipelineState
         }catch let error as NSError{
             print("\(error)")

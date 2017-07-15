@@ -6,7 +6,6 @@
 
 import Foundation
 import MetalKit
-import MetalPerformanceShaders
 
 class FaceDetection {
     
@@ -17,15 +16,9 @@ class FaceDetection {
     var sizes = [(width: Int, height: Int)]()
     var scales = [Float]()
 
-    let integral : MPSImageIntegral
-    let sqIntegral : MPSImageIntegralOfSquares
+    let integral: IntegralImage
     let haarPipeline : MTLComputePipelineState
-    
-    var histogramInfo : MPSImageHistogramInfo
-    let histogram : MPSImageHistogram
-    let eqHistograms : MPSImageHistogramEqualization
-    let histogramInfoBuffer : MTLBuffer
-    
+
     var grayscaleTex : MTLTexture
     let integralTex : MTLTexture
     let sqIntegralTex : MTLTexture
@@ -35,8 +28,6 @@ class FaceDetection {
     
     var counterBuffer : MTLBuffer
     var counterPtr : UnsafeMutableBufferPointer<Int32>
-    
-    let computeHistogram = false
     
     init(path: URL, width: Int, height: Int) {
         
@@ -56,25 +47,9 @@ class FaceDetection {
             factor *= scaleFactor
 
         } while (Int(factor * Float(cascade.getWindowSizeWidth())) < width - 10 && Int(factor * Float(cascade.getWindowSizeHeight())) < height - 10)
-        
-        integral = MPSImageIntegral(device: Context.device())
-        integral.label = "imageIntegral"
-        sqIntegral = MPSImageIntegralOfSquares(device: Context.device())
-        sqIntegral.label = "imageIntegralSquares"
-        
-        histogramInfo = MPSImageHistogramInfo(
-            numberOfHistogramEntries: 256,
-            histogramForAlpha: false,
-            minPixelValue: vector_float4(0,0,0,0),
-            maxPixelValue: vector_float4(1,1,1,1))
-        
-        histogram = MPSImageHistogram(device: Context.device(), histogramInfo: &histogramInfo)
-        histogram.label = "imageHistogram"
-        histogramInfoBuffer = Context.device().makeBuffer(bytes: &histogramInfo, length: MemoryLayout.size(ofValue: histogramInfo), options: MTLResourceOptions.optionCPUCacheModeWriteCombined)
-        histogramInfoBuffer.label = "histogramInfoBuffer"
-        eqHistograms = MPSImageHistogramEqualization(device: Context.device(), histogramInfo: &histogramInfo)
-        eqHistograms.label = "imageHistogramEqualization"
-        
+
+        integral = IntegralImage(device: Context.device(), library: Context.library(), width: width, height: height, inclusive: true)
+
         let descriptor = MTLTextureDescriptor.texture2DDescriptor(
             pixelFormat: MTLPixelFormat.r32Float,
             width: width,
@@ -110,22 +85,15 @@ class FaceDetection {
         counterPtr[0]=0
         
         // convert to gray
-        grayscale.process(commandBuffer: commandBuffer, sourceTexture: input, destinationTexture: grayscaleTex)
+        grayscale.encode(commandBuffer: commandBuffer, sourceTexture: input, destinationTexture: grayscaleTex)
 
-        // histogram equalization, costs performance ...
-        if computeHistogram {
-            // histogram
-            histogram.encode(to: commandBuffer, sourceTexture: grayscaleTex, histogram: histogramInfoBuffer, histogramOffset: 0)
-
-            // equalize
-            eqHistograms.encode(commandBuffer: commandBuffer, inPlaceTexture: &grayscaleTex, fallbackCopyAllocator: nil)
-        }
-        
         // integral image
-        integral.encode(commandBuffer: commandBuffer, sourceTexture: grayscaleTex, destinationTexture: integralTex)
+        integral.encode(commandBuffer, sourceTexture: grayscaleTex, destinationTexture: integralTex)
+        //integral.encode(commandBuffer: commandBuffer, sourceTexture: grayscaleTex, destinationTexture: integralTex)
         
         // sq integral image
-        sqIntegral.encode(commandBuffer: commandBuffer, sourceTexture: grayscaleTex, destinationTexture: sqIntegralTex)
+        integral.encode_square(commandBuffer, sourceTexture: grayscaleTex, destinationTexture: sqIntegralTex)
+        //sqIntegral.encode(commandBuffer: commandBuffer, sourceTexture: grayscaleTex, destinationTexture: sqIntegralTex)
         
         // haar kernel
         let block = MTLSizeMake(8, 32, 1)

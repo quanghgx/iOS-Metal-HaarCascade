@@ -7,6 +7,12 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		43BE9FE51F1A03F3008B22BF /* transpose.metal in Sources */ = {isa = PBXBuildFile; fileRef = 43BE9FE41F1A03F3008B22BF /* transpose.metal */; };
+		43BE9FE71F1A0419008B22BF /* square.metal in Sources */ = {isa = PBXBuildFile; fileRef = 43BE9FE61F1A0419008B22BF /* square.metal */; };
+		43BE9FE91F1A0584008B22BF /* integral.metal in Sources */ = {isa = PBXBuildFile; fileRef = 43BE9FE81F1A0584008B22BF /* integral.metal */; };
+		43BE9FED1F1A0652008B22BF /* simple_transpose.swift in Sources */ = {isa = PBXBuildFile; fileRef = 43BE9FEC1F1A0652008B22BF /* simple_transpose.swift */; };
+		43BE9FEF1F1A0666008B22BF /* simple_square.swift in Sources */ = {isa = PBXBuildFile; fileRef = 43BE9FEE1F1A0666008B22BF /* simple_square.swift */; };
+		43BE9FF11F1A0674008B22BF /* simple_integral.swift in Sources */ = {isa = PBXBuildFile; fileRef = 43BE9FF01F1A0674008B22BF /* simple_integral.swift */; };
 		43E871661F11229F007F31E2 /* grayscale.metal in Sources */ = {isa = PBXBuildFile; fileRef = 43E871651F11229F007F31E2 /* grayscale.metal */; };
 		43E871681F1122C1007F31E2 /* grayscale.swift in Sources */ = {isa = PBXBuildFile; fileRef = 43E871671F1122C1007F31E2 /* grayscale.swift */; };
 		9DEF7AD11DDB2DD500932082 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9DEF7AD01DDB2DD500932082 /* AppDelegate.swift */; };
@@ -28,6 +34,12 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		43BE9FE41F1A03F3008B22BF /* transpose.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = transpose.metal; sourceTree = "<group>"; };
+		43BE9FE61F1A0419008B22BF /* square.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = square.metal; sourceTree = "<group>"; };
+		43BE9FE81F1A0584008B22BF /* integral.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = integral.metal; sourceTree = "<group>"; };
+		43BE9FEC1F1A0652008B22BF /* simple_transpose.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = simple_transpose.swift; sourceTree = "<group>"; };
+		43BE9FEE1F1A0666008B22BF /* simple_square.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = simple_square.swift; sourceTree = "<group>"; };
+		43BE9FF01F1A0674008B22BF /* simple_integral.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = simple_integral.swift; sourceTree = "<group>"; };
 		43E871651F11229F007F31E2 /* grayscale.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = grayscale.metal; sourceTree = "<group>"; };
 		43E871671F1122C1007F31E2 /* grayscale.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = grayscale.swift; sourceTree = "<group>"; };
 		9DEF7ACD1DDB2DD500932082 /* iOS-Metal-HaarCascade.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "iOS-Metal-HaarCascade.app"; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -61,6 +73,29 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		43BE9FEA1F1A05DD008B22BF /* integral */ = {
+			isa = PBXGroup;
+			children = (
+				43BE9FEB1F1A05E8008B22BF /* shader */,
+				43E871671F1122C1007F31E2 /* grayscale.swift */,
+				43BE9FEC1F1A0652008B22BF /* simple_transpose.swift */,
+				43BE9FF01F1A0674008B22BF /* simple_integral.swift */,
+				43BE9FEE1F1A0666008B22BF /* simple_square.swift */,
+			);
+			path = integral;
+			sourceTree = "<group>";
+		};
+		43BE9FEB1F1A05E8008B22BF /* shader */ = {
+			isa = PBXGroup;
+			children = (
+				43E871651F11229F007F31E2 /* grayscale.metal */,
+				43BE9FE41F1A03F3008B22BF /* transpose.metal */,
+				43BE9FE61F1A0419008B22BF /* square.metal */,
+				43BE9FE81F1A0584008B22BF /* integral.metal */,
+			);
+			path = shader;
+			sourceTree = "<group>";
+		};
 		9D7C32081DDDB792004A1005 /* cascade-file */ = {
 			isa = PBXGroup;
 			children = (
@@ -88,6 +123,7 @@
 		9DEF7ACF1DDB2DD500932082 /* iOS-Metal-HaarCascade */ = {
 			isa = PBXGroup;
 			children = (
+				43BE9FEA1F1A05DD008B22BF /* integral */,
 				9DEF7B031DDC6C1800932082 /* haar */,
 				9DEF7AEF1DDB2E9F00932082 /* processor */,
 				9DEF7AEA1DDB2E5100932082 /* camera */,
@@ -99,8 +135,6 @@
 				9DEF7AD71DDB2DD500932082 /* Assets.xcassets */,
 				9DEF7AD91DDB2DD500932082 /* LaunchScreen.storyboard */,
 				9DEF7ADC1DDB2DD500932082 /* Info.plist */,
-				43E871651F11229F007F31E2 /* grayscale.metal */,
-				43E871671F1122C1007F31E2 /* grayscale.swift */,
 			);
 			name = "iOS-Metal-HaarCascade";
 			path = src;
@@ -227,6 +261,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				9DEF7B021DDC67EE00932082 /* ProcessorManager.swift in Sources */,
+				43BE9FED1F1A0652008B22BF /* simple_transpose.swift in Sources */,
 				9DEF7B071DDC6C2300932082 /* FaceDetectionKernels.metal in Sources */,
 				9DEF7AE31DDB2E0900932082 /* ViewFunctions.metal in Sources */,
 				43E871681F1122C1007F31E2 /* grayscale.swift in Sources */,
@@ -234,11 +269,16 @@
 				9DEF7B0B1DDC6C2900932082 /* HaarCascade.swift in Sources */,
 				9DEF7AF11DDB2EAD00932082 /* Processor.swift in Sources */,
 				9DEF7AEE1DDB2E7F00932082 /* ProcessorInput.swift in Sources */,
+				43BE9FE51F1A03F3008B22BF /* transpose.metal in Sources */,
 				9DEF7B091DDC6C2700932082 /* FaceDetection.swift in Sources */,
+				43BE9FF11F1A0674008B22BF /* simple_integral.swift in Sources */,
+				43BE9FEF1F1A0666008B22BF /* simple_square.swift in Sources */,
 				9DEF7AE71DDB2E1A00932082 /* View.swift in Sources */,
 				43E871661F11229F007F31E2 /* grayscale.metal in Sources */,
+				43BE9FE91F1A0584008B22BF /* integral.metal in Sources */,
 				9DEF7AD31DDB2DD500932082 /* ViewController.swift in Sources */,
 				9DEF7AD11DDB2DD500932082 /* AppDelegate.swift in Sources */,
+				43BE9FE71F1A0419008B22BF /* square.metal in Sources */,
 				9DEF7AEC1DDB2E5E00932082 /* CameraInput.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -381,6 +421,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = test6.com.helf.testbed;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 3.0;
+				TARGETED_DEVICE_FAMILY = 2;
 			};
 			name = Debug;
 		};
@@ -395,6 +436,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = test6.com.helf.testbed;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 3.0;
+				TARGETED_DEVICE_FAMILY = 2;
 			};
 			name = Release;
 		};
